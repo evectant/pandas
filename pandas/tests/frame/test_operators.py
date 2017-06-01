@@ -447,10 +447,26 @@ class TestDataFrameOperators(TestData):
 
         result = self.frame[:0].add(self.frame)
         assert_frame_equal(result, self.frame * np.nan)
-        with tm.assert_raises_regex(NotImplementedError, 'fill_value'):
-            self.frame.add(self.frame.iloc[0], fill_value=3)
-        with tm.assert_raises_regex(NotImplementedError, 'fill_value'):
-            self.frame.add(self.frame.iloc[0], axis='index', fill_value=3)
+
+    def test_arith_fill(self):
+        # GH 13488
+        df = DataFrame([[10.0, 11.0, 12.0, 13.0],
+                       [20.0, 21.0, 22.0, np.nan],
+                       [30.0, np.nan, np.nan, np.nan]])
+        s = Series([0.0, 1.0, 2.0, np.nan])
+
+        by_columns = DataFrame([[10.0, 12.0, 14.0, 13.0],
+                               [20.0, 22.0, 24.0, 0.0],
+                               [30.0, 1.0, 2.0, 0.0]])
+        assert_frame_equal(by_columns,
+                           df.add(s, fill_value=0.0))
+
+        by_index = DataFrame([[10.0, 11.0, 12.0, 13.0],
+                             [21.0, 22.0, 23.0, 1.0],
+                             [32.0, 2.0, 2.0, 2.0],
+                             [0.0, 0.0, 0.0, 0.0]])
+        assert_frame_equal(by_index,
+                           df.add(s, fill_value=0.0, axis='index'))
 
     def test_binary_ops_align(self):
 
